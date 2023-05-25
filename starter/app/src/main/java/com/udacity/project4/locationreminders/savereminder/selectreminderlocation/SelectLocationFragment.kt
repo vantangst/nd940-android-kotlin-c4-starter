@@ -17,6 +17,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PointOfInterest
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -32,7 +33,7 @@ class SelectLocationFragment : BaseFragment() {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var map: GoogleMap
-    private var currentLatLng: LatLng? = null
+    private var currentPoi: PointOfInterest? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -90,9 +91,11 @@ class SelectLocationFragment : BaseFragment() {
     }
 
     private fun onLocationSelected() {
-        currentLatLng?.let {
-            _viewModel.latitude.value = it.latitude
-            _viewModel.longitude.value = it.longitude
+        currentPoi?.let {
+            _viewModel.selectedPOI.value = it
+            _viewModel.latitude.value = it.latLng.latitude
+            _viewModel.longitude.value = it.latLng.longitude
+            _viewModel.reminderSelectedLocationStr.value = it.name
             _viewModel.navigationCommand.value = NavigationCommand.Back
         } ?: run {
             _viewModel.showErrorMessage.value = getString(R.string.err_select_location)
@@ -126,7 +129,7 @@ class SelectLocationFragment : BaseFragment() {
     // Places a marker on the map and displays an info window that contains POI name.
     private fun setPoiClick(map: GoogleMap) {
         map.setOnPoiClickListener { poi ->
-            currentLatLng = poi.latLng
+            currentPoi = poi
             map.clear()
             val poiMarker = map.addMarker(
                 MarkerOptions()
