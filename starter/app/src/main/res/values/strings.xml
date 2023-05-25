@@ -7,9 +7,11 @@
     <string name="reminder_desc">Description</string>
     <string name="reminder_location">Reminder Location</string>
     <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
     <string name="reminder_saved">Reminder Saved !</string>
     <string name="logout">Logout</string>
     <string name="welcome_to_the_location_reminder_app">Welcome to the location reminder app</string>
+    <string name="logout_msg">You have been successful logged out</string>
     <string name="login">Login</string>
     <string name="title_activity_maps">Map</string>
     <string name="normal_map">Normal Map</string>

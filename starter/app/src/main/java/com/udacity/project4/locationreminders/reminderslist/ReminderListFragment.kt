@@ -3,29 +3,38 @@ package com.udacity.project4.locationreminders.reminderslist
 import android.os.Bundle
 import android.view.*
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.lifecycleScope
+import com.firebase.ui.auth.AuthUI
 import com.udacity.project4.R
+import com.udacity.project4.authentication.AuthenticationActivity
+import com.udacity.project4.authentication.AuthenticationViewModel
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentRemindersBinding
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import com.udacity.project4.utils.setTitle
 import com.udacity.project4.utils.setup
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ReminderListFragment : BaseFragment() {
 
     // Use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by viewModel()
+    private val authenticationViewModel: AuthenticationViewModel by viewModel()
     private lateinit var binding: FragmentRemindersBinding
+    private lateinit var menu: Menu
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = DataBindingUtil.inflate(inflater,
+        binding = DataBindingUtil.inflate(
+            inflater,
             R.layout.fragment_reminders, container, false
         )
         binding.viewModel = _viewModel
+        binding.lifecycleOwner = viewLifecycleOwner
 
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(false)
@@ -34,12 +43,50 @@ class ReminderListFragment : BaseFragment() {
         return binding.root
     }
 
+    private fun observeLifecycleData() {
+        authenticationViewModel.authenticationStateEvent.observe(viewLifecycleOwner) {
+            lifecycleScope.launch {
+                handleMenu(it)
+            }
+        }
+    }
+
+    private fun logout() {
+        AuthUI.getInstance().signOut(requireContext()).addOnCompleteListener {
+            _viewModel.showSnackBar.value = getString(R.string.logout_msg)
+            authenticationViewModel.getLoginState()
+        }
+    }
+
+    private fun handleMenu(isLogin: Boolean) {
+        showMenu(R.id.logout, isLogin)
+        showMenu(R.id.login, !isLogin)
+    }
+
+    private fun showMenu(menuId: Int, isShow: Boolean) {
+        if (::menu.isInitialized) {
+            val item = menu.findItem(menuId)
+            item?.isVisible = isShow
+            requireActivity().invalidateOptionsMenu()
+        }
+    }
+
+    private fun navigateToLogin() {
+        val intent = Intent(requireActivity(), AuthenticationActivity::class.java)
+        startActivity(intent)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.lifecycleOwner = this
         setupRecyclerView()
+        observeLifecycleData()
         binding.addReminderFAB.setOnClickListener {
-            navigateToAddReminder()
+            if (authenticationViewModel.isLogIn) {
+                navigateToAddReminder()
+            } else {
+                navigateToLogin()
+            }
         }
     }
 
@@ -65,7 +112,10 @@ class ReminderListFragment : BaseFragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.logout -> {
-                // TODO: add the logout implementation
+                logout()
+            }
+            R.id.login -> {
+                navigateToLogin()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -74,6 +124,9 @@ class ReminderListFragment : BaseFragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         // Display logout as menu item
+        this.menu = menu
         inflater.inflate(R.menu.main_menu, menu)
+        handleMenu(authenticationViewModel.isLogIn)
+    }
     }
 }
