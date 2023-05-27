@@ -98,7 +98,7 @@ class SelectLocationFragment : BaseFragment() {
             _viewModel.reminderSelectedLocationStr.value = it.name
             _viewModel.navigationCommand.value = NavigationCommand.Back
         } ?: run {
-            _viewModel.showErrorMessage.value = getString(R.string.err_select_location)
+            _viewModel.showErrorMessage.value = getString(R.string.select_poi)
         }
     }
 
