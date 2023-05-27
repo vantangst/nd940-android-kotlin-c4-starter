@@ -3,6 +3,8 @@ package com.udacity.project4.utils
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.app.Activity
+import android.location.Address
+import android.location.Geocoder
 import android.os.Build
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -68,4 +70,23 @@ fun <T : Serializable?> getSerializable(activity: Activity, name: String, clazz:
         activity.intent.getSerializableExtra(name, clazz)!!
     else
         activity.intent.getSerializableExtra(name) as T
+}
+
+fun Geocoder.getAddress(
+    latitude: Double,
+    longitude: Double,
+    address: (Address?) -> Unit
+) {
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getFromLocation(latitude, longitude, 2) { address(it.firstOrNull()) }
+        return
+    }
+
+    try {
+        address(getFromLocation(latitude, longitude, 1)?.firstOrNull())
+    } catch(e: Exception) {
+        //will catch if there is an internet problem
+        address(null)
+    }
 }

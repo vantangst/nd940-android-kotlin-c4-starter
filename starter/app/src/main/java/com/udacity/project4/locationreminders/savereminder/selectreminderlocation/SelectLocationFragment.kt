@@ -5,6 +5,7 @@ import android.content.Context.LOCATION_SERVICE
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Criteria
+import android.location.Geocoder
 import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
@@ -23,8 +24,10 @@ import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
+import com.udacity.project4.utils.getAddress
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import java.util.*
 
 
 class SelectLocationFragment : BaseFragment() {
@@ -60,6 +63,7 @@ class SelectLocationFragment : BaseFragment() {
             setMapStyle(map)
             // put a marker to location that the user selected
             setPoiClick(map)
+            setMarkerOnLongClick(map)
             // enable my location
             enableMyLocation(map)
         }
@@ -77,7 +81,8 @@ class SelectLocationFragment : BaseFragment() {
         ) {
             map.isMyLocationEnabled = true
             //zoom to the user location after taking his permission
-            val locationManager = requireActivity().getSystemService(LOCATION_SERVICE) as LocationManager
+            val locationManager =
+                requireActivity().getSystemService(LOCATION_SERVICE) as LocationManager
             val provider = locationManager.getBestProvider(Criteria(), true)
             provider?.let {
                 val location = locationManager.getLastKnownLocation(it)
@@ -137,6 +142,34 @@ class SelectLocationFragment : BaseFragment() {
                     .title(poi.name)
             )
             poiMarker?.showInfoWindow()
+        }
+    }
+
+    private fun setMarkerOnLongClick(map: GoogleMap) {
+        map.setOnMapLongClickListener { selectedLocation ->
+            map.clear()
+            val snippet = String.format(
+                getString(R.string.lat_long_snippet),
+                selectedLocation.latitude,
+                selectedLocation.longitude
+            )
+            Geocoder(requireContext(), Locale.getDefault()).getAddress(
+                selectedLocation.latitude,
+                selectedLocation.longitude
+            ) {
+                val locationName = it?.featureName ?: it?.thoroughfare ?: it?.locality ?: "Unknown name"
+                currentPoi = PointOfInterest(
+                    selectedLocation,
+                    snippet,
+                    locationName
+                )
+                map.addMarker(
+                    MarkerOptions()
+                        .position(selectedLocation)
+                        .title(locationName)
+                        .snippet(snippet)
+                )?.showInfoWindow()
+            }
         }
     }
 

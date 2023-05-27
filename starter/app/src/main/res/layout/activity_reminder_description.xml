@@ -79,6 +79,6 @@
             style="@style/MainButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/dropped_pin" />
+            android:text="@string/finish_a_reminder" />
     </LinearLayout>
 </layout>

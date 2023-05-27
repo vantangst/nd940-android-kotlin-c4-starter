@@ -20,6 +20,7 @@
     <string name="terrain_map">Terrain Map</string>
     <string name="lat_long_snippet">Lat: %1$.5f, Long: %2$.5f</string>
     <string name="dropped_pin">Dropped Pin</string>
+    <string name="finish_a_reminder">Done and Remove</string>
     <string name="title_display">Title: %s</string>
     <string name="description_display">Description: %s</string>
     <string name="location_display">Location: %s</string>
