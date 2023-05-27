@@ -26,6 +26,13 @@ interface RemindersDao {
     suspend fun getReminderById(reminderId: String): ReminderDTO?
 
     /**
+     * Delete a reminder with id.
+     * @param reminderId the id of the reminder
+     */
+    @Query("DELETE FROM reminders where entry_id = :reminderId")
+    suspend fun deleteReminderById(reminderId: String): Int
+
+    /**
      * Insert a reminder in the database. If the reminder already exists, replace it.
      * @param reminder the reminder to be inserted.
      */

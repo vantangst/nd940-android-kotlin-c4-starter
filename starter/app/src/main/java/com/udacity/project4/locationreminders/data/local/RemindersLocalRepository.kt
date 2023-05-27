@@ -41,6 +41,22 @@ class RemindersLocalRepository(
         }
 
     /**
+     * Delete a reminder by its id
+     * @param id to be used to get the reminder
+     * @return true if success
+     */
+    override suspend fun deleteReminder(id: String): Boolean {
+        return withContext(ioDispatcher) {
+            try {
+                val result = remindersDao.deleteReminderById(id)
+                result > 0
+            } catch (ex: Exception) {
+                false
+            }
+        }
+    }
+
+    /**
      * Get a reminder by its id
      * @param id to be used to get the reminder
      * @return Result the holds a Success object with the Reminder or an Error object with the error message

@@ -83,7 +83,7 @@ class SelectLocationFragment : BaseFragment() {
                 val location = locationManager.getLastKnownLocation(it)
                 if (location != null) {
                     val coordinate = LatLng(location.latitude, location.longitude)
-                    val cameraUpdateFactory = CameraUpdateFactory.newLatLngZoom(coordinate, 19f)
+                    val cameraUpdateFactory = CameraUpdateFactory.newLatLngZoom(coordinate, 18f)
                     map.animateCamera(cameraUpdateFactory)
                 }
             }

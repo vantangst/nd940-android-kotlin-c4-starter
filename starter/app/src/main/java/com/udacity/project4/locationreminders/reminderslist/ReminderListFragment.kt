@@ -63,6 +63,7 @@ class ReminderListFragment : BaseFragment() {
     private fun logout() {
         AuthUI.getInstance().signOut(requireContext()).addOnCompleteListener {
             _viewModel.showSnackBar.value = getString(R.string.logout_msg)
+            _viewModel.clearAllReminder()
             authenticationViewModel.getLoginState()
         }
     }

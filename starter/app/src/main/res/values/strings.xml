@@ -23,6 +23,9 @@
     <string name="poi">poi</string>
     <string name="location_required_error">Location services must be enabled to use the app</string>
     <string name="permission_denied_explanation">You need to grant location permission in order to select the location.</string>
+    <string name="location_background_required_error">Background Location must be enabled to use this feature</string>
+    <string name="permission_background_denied_explanation">You need to grant background location permission by going to `App Setting` -> `Permissions` -> `Location` -> set `Allow all the time`.</string>
+    <string name="location_required_turned_on_error">Please turn on your device location to use the this feature</string>
     <string name="settings">Settings</string>
     <string name="select_poi">Please select a point of interest</string>
     <string name="geofence_entered">Geofence Entered</string>
@@ -31,10 +34,13 @@
     <string name="content_text">Location Reminder</string>
     <string name="select_title">Please select title</string>
     <string name="select_location">Please select location</string>
+    <string name="geofences_added">You have been successful added a Geofence.</string>
     <string name="geofences_not_added">Problem in adding geofences.</string>
     <string name="welcome">Welcome</string>
     <string name="err_enter_title">Please enter title</string>
     <string name="err_select_location">Please select location</string>
+    <string name="geofences_not_removed">Geofences not removed.</string>
+    <string name="geofences_removed">Geofences removed.</string>
 
     <!-- Error strings -->
     <string name="geofence_unknown_error">Unknown error: the Geofence service is not available now.</string>
