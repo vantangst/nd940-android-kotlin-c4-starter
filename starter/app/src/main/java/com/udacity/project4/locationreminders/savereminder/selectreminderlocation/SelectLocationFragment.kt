@@ -1,16 +1,22 @@
 package com.udacity.project4.locationreminders.savereminder.selectreminderlocation
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Context.LOCATION_SERVICE
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Criteria
 import android.location.Geocoder
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -37,6 +43,7 @@ class SelectLocationFragment : BaseFragment() {
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var map: GoogleMap
     private var currentPoi: PointOfInterest? = null
+    private var permissionDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -64,8 +71,7 @@ class SelectLocationFragment : BaseFragment() {
             // put a marker to location that the user selected
             setPoiClick(map)
             setMarkerOnLongClick(map)
-            // enable my location
-            enableMyLocation(map)
+            enableMyLocation()
         }
         return binding.root
     }
@@ -189,6 +195,70 @@ class SelectLocationFragment : BaseFragment() {
             }
         } catch (e: Resources.NotFoundException) {
             Log.e(TAG, "Can't find style. Error: ", e)
+        }
+    }
+
+    private fun enableMyLocation() {
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // You can use the API that requires the permission.
+                // enable my location
+                enableMyLocation(map)
+            }
+            shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+                showPermissionDialog()
+            }
+            else -> {
+                // You can directly ask for the permission.
+                // The registered ActivityResultCallback gets the result of this request.
+                requestPermissionLauncher.launch(
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            }
+        }
+    }
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                // Permission is granted. Continue the action or workflow in your app.
+                // enable my location
+                enableMyLocation(map)
+            } else {
+                showPermissionDialog()
+            }
+        }
+
+    private fun openPermissionSetting() {
+        val intent = Intent()
+        intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+        val uri: Uri = Uri.fromParts("package", requireActivity().packageName, null)
+        intent.data = uri
+        requireActivity().startActivity(intent)
+    }
+
+    private fun showPermissionDialog() {
+        if (permissionDialog == null) {
+            val builder = AlertDialog.Builder(requireContext())
+            builder.setTitle(getString(R.string.location_required_error))
+            builder.setMessage(getString(R.string.permission_denied_explanation))
+
+            builder.setPositiveButton(R.string.settings) { dialog, _ ->
+                openPermissionSetting()
+                dialog.dismiss()
+            }
+
+            builder.setNegativeButton(android.R.string.cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            permissionDialog = builder.show()
+        } else {
+            permissionDialog?.show()
         }
     }
 

@@ -1,15 +1,8 @@
 package com.udacity.project4.locationreminders.reminderslist
 
-import android.Manifest
-import android.app.AlertDialog
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.view.*
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.firebase.ui.auth.AuthUI
@@ -32,7 +25,6 @@ class ReminderListFragment : BaseFragment() {
     private val authenticationViewModel: AuthenticationViewModel by viewModel()
     private lateinit var binding: FragmentRemindersBinding
     private lateinit var menu: Menu
-    private var permissionDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -103,7 +95,6 @@ class ReminderListFragment : BaseFragment() {
     override fun onResume() {
         super.onResume()
         // Load the reminders list on the ui
-        enableMyLocation()
         _viewModel.loadReminders()
     }
 
@@ -138,67 +129,5 @@ class ReminderListFragment : BaseFragment() {
         this.menu = menu
         inflater.inflate(R.menu.main_menu, menu)
         handleMenu(authenticationViewModel.isLogIn)
-    }
-
-    private fun enableMyLocation() {
-        when {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                // You can use the API that requires the permission.
-            }
-            shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
-                showPermissionDialog()
-            }
-            else -> {
-                // You can directly ask for the permission.
-                // The registered ActivityResultCallback gets the result of this request.
-                requestPermissionLauncher.launch(
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                )
-            }
-        }
-    }
-
-    private val requestPermissionLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted: Boolean ->
-            if (isGranted) {
-                // Permission is granted. Continue the action or workflow in your
-                // app.
-            } else {
-                showPermissionDialog()
-            }
-        }
-
-    private fun openPermissionSetting() {
-        val intent = Intent()
-        intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-        val uri: Uri = Uri.fromParts("package", requireActivity().packageName, null)
-        intent.data = uri
-        requireActivity().startActivity(intent)
-    }
-
-    private fun showPermissionDialog() {
-        if (permissionDialog == null) {
-            val builder = AlertDialog.Builder(requireContext())
-            builder.setTitle(getString(R.string.location_required_error))
-            builder.setMessage(getString(R.string.permission_denied_explanation))
-
-            builder.setPositiveButton(R.string.settings) { dialog, _ ->
-                openPermissionSetting()
-                dialog.dismiss()
-            }
-
-            builder.setNegativeButton(android.R.string.cancel) { dialog, _ ->
-                dialog.dismiss()
-                requireActivity().finish()
-            }
-            permissionDialog = builder.show()
-        } else {
-            permissionDialog?.show()
-        }
     }
 }
