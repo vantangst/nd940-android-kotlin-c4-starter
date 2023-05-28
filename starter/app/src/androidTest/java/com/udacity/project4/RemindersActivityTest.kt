@@ -1,5 +1,6 @@
 package com.udacity.project4
 
+import android.os.Build
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
@@ -10,10 +11,12 @@ import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.base.BaseUITest
 import com.udacity.project4.util.monitorActivity
+import com.udacity.project4.util.onToast
 import com.udacity.project4.utils.EspressoIdlingResource
 import org.junit.After
 import org.junit.Before
@@ -28,6 +31,26 @@ class RemindersActivityTest : BaseUITest() {
 
     // An Idling Resource that waits for Data Binding to have no pending bindings
     private val dataBindingIdlingResource = DataBindingIdlingResource()
+
+    @Before
+    fun grantPhonePermission() {
+        // In M+, trying to call a number will trigger a runtime dialog. Make sure
+        // the permission is granted before running this test.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            getInstrumentation().uiAutomation.executeShellCommand(
+                "pm grant " + appContext.packageName
+                        + " android.permission.ACCESS_FINE_LOCATION"
+            )
+            getInstrumentation().uiAutomation.executeShellCommand(
+                "pm grant " + appContext.packageName
+                        + " android.permission.ACCESS_COARSE_LOCATION"
+            )
+            getInstrumentation().uiAutomation.executeShellCommand(
+                "pm grant " + appContext.packageName
+                        + " android.permission.ACCESS_BACKGROUND_LOCATION"
+            )
+        }
+    }
 
     /**
      * Idling resources tell Espresso that the app is idle or busy. This is needed when operations
@@ -85,6 +108,12 @@ class RemindersActivityTest : BaseUITest() {
                 click()
             )
         )
+
+        // Toast message assertions not working with android 11 and target sdk 30 and above
+        // https://github.com/android/android-test/issues/803
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+            onToast(R.string.reminder_saved).check(matches(isDisplayed()))
+        }
 
         activityScenario.close()
     }
