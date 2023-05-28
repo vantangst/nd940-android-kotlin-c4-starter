@@ -22,9 +22,11 @@ class FakeDataSource : ReminderDataSource {
     }
 
     override suspend fun getReminder(id: String): Result<ReminderDTO> {
-        reminders.firstOrNull { it.id == id }?.let {
-            return Result.Success(it)
-        } ?: return Result.Error("Not found")
+        return try {
+            return Result.Success(reminders.first { it.id == id })
+        } catch (e: Exception) {
+            Result.Error("Unexpected exception: ${e.localizedMessage}")
+        }
     }
 
     override suspend fun deleteAllReminders() {
