@@ -28,7 +28,7 @@ class GeofenceTransitionsWork(context: Context, parameters: WorkerParameters) :
     CoroutineWorker(context, parameters), KoinComponent {
 
     companion object {
-        const val KEY_INPUT_URL = "KEY_INPUT_REQUEST_ID"
+        const val KEY_INPUT_REQUEST_ID_LIST = "KEY_INPUT_REQUEST_ID_LIST"
         private const val TAG = "GeofenceTransitionsWork"
 
         fun enqueueWork(context: Context, intent: Intent) {
@@ -46,21 +46,18 @@ class GeofenceTransitionsWork(context: Context, parameters: WorkerParameters) :
                         Log.v(TAG, context.getString(R.string.geofence_entered))
 
                         geofencingEvent.triggeringGeofences?.let { triggeringGeofences ->
-                            val fenceId = when {
-                                triggeringGeofences.isNotEmpty() ->
-                                    triggeringGeofences[0].requestId
-                                else -> {
-                                    Log.e(TAG, "No Geofence Trigger Found! Abort mission!")
-                                    return
-                                }
+                            if (triggeringGeofences.isNotEmpty()) {
+                                val geofenceIds = triggeringGeofences.map { it.requestId }.toTypedArray()
+                                val inputData = Data.Builder()
+                                inputData.putStringArray(KEY_INPUT_REQUEST_ID_LIST, geofenceIds)
+                                val request =
+                                    OneTimeWorkRequest.Builder(GeofenceTransitionsWork::class.java)
+                                        .setInputData(inputData.build())
+                                        .build()
+                                WorkManager.getInstance(context).enqueue(request)
+                            } else {
+                                Log.e(TAG, "No Geofence Trigger Found! Abort mission!")
                             }
-                            val inputData = Data.Builder()
-                            inputData.putString(KEY_INPUT_URL, fenceId)
-                            val request =
-                                OneTimeWorkRequest.Builder(GeofenceTransitionsWork::class.java)
-                                    .setInputData(inputData.build())
-                                    .build()
-                            WorkManager.getInstance(context).enqueue(request)
                         }
                     }
                 } ?: Log.e(TAG, "Not found GeofencingEvent")
@@ -88,8 +85,10 @@ class GeofenceTransitionsWork(context: Context, parameters: WorkerParameters) :
     }
 
     override suspend fun doWork(): Result {
-        inputData.getString(KEY_INPUT_URL)?.let { requestId ->
-            sendNotification(requestId)
+        inputData.getStringArray(KEY_INPUT_REQUEST_ID_LIST)?.let { requestIds ->
+            requestIds.forEach {
+                sendNotification(it)
+            }
             return Result.success()
         }
         return Result.failure()

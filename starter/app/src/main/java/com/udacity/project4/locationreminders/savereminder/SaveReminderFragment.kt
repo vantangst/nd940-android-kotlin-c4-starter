@@ -124,13 +124,14 @@ class SaveReminderFragment : BaseFragment() {
             // Set the request ID, string to identify the geofence.
             .setRequestId(currentGeofenceData.id)
             // Set the circular region of this geofence.
-            .setCircularRegion(currentGeofenceData.latitude ?: 0.0,
+            .setCircularRegion(
+                currentGeofenceData.latitude ?: 0.0,
                 currentGeofenceData.longitude ?: 0.0,
                 GeofencingConstants.GEOFENCE_RADIUS_IN_METERS
             )
             // Set the expiration duration of the geofence. This geofence gets
             // automatically removed after this period of time.
-            .setExpirationDuration(GeofencingConstants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+            .setExpirationDuration(Geofence.NEVER_EXPIRE)
             // Set the transition types of interest. Alerts are only generated for these
             // transition. We track entry and exit transitions in this sample.
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
@@ -147,25 +148,18 @@ class SaveReminderFragment : BaseFragment() {
             .addGeofence(geofence)
             .build()
 
-        // First, remove any existing geofences that use our pending intent
-        geofencingClient.removeGeofences(geofencePendingIntent).run {
-            // Regardless of success/failure of the removal, add the new geofence
-            addOnCompleteListener {
-                // Add the new geofence request with the new geofence
-                geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent).run {
-                    addOnSuccessListener {
-                        // Geofences added.
-                        _viewModel.showToast.value = getString(R.string.reminder_saved)
-                        _viewModel.navigationCommand.value = NavigationCommand.Back
-                        Log.d("Added Geofence", geofence.requestId)
-                    }
-                    addOnFailureListener {
-                        // Failed to add geofences.
-                        _viewModel.showToast.value = getString(R.string.geofences_not_added)
-                        it.message?.let { msg ->
-                            Log.w(TAG, "addGeofence fail: $msg")
-                        }
-                    }
+        geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent).run {
+            addOnSuccessListener {
+                // Geofences added.
+                _viewModel.showToast.value = getString(R.string.reminder_saved)
+                _viewModel.navigationCommand.value = NavigationCommand.Back
+                Log.d("Added Geofence", geofence.requestId)
+            }
+            addOnFailureListener {
+                // Failed to add geofences.
+                _viewModel.showToast.value = getString(R.string.geofences_not_added)
+                it.message?.let { msg ->
+                    Log.w(TAG, "addGeofence fail: $msg")
                 }
             }
         }
