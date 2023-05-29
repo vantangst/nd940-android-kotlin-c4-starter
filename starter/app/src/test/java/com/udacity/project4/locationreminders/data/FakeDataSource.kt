@@ -23,7 +23,7 @@ class FakeDataSource : ReminderDataSource {
 
     override suspend fun getReminder(id: String): Result<ReminderDTO> {
         return if (isError) {
-            Result.Error("Not found data")
+            Result.Error(errorMsg)
         } else {
             reminders.firstOrNull { it.id == id }?.let {
                 Result.Success(it)
